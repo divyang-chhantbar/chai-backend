@@ -25,7 +25,13 @@ app.use(express.static("public")) // public isiliye ki humare local comp me unka
 app.use(cookieParser())
 // use of cookie parser : in our server from the user's browser's cookies ko accept kr paye ya to set kr sake .
 
+// routes
+import userRouter from "./routes/user.routes.js";
 
+//routes declaration
+// app.get("/",(req,res) => {}); // this is a route declaration
+// we used to use this earlier because through the (app) we were writing both routes and controller here but now we are using the routes and controller separately so we will use the below code to declare the routes :
+app.use("/api/v1/users",userRouter)
 export{app};
 
 // now we will go for more standardization of our code we are seeing that some of the code need a same wrapper code so we will add that thing to utility folder and we will use that thing in our code so that we can make our code more standardize and more readable and more maintainable .  
