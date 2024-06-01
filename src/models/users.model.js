@@ -22,7 +22,7 @@ const UserSchema = new Schema(
             lowercase : true,
             trim : true,
         },
-        fullname : {
+        fullName : {
             type : String,
             required : true,
             trim : true,
@@ -30,11 +30,11 @@ const UserSchema = new Schema(
         },
         avatar : {
             type : String, // cloudinary url
-            required : true,
+            // required : true,
         },
         coverImage : {
             type : String,
-            required : true,
+            // required : true,
         },
         watchHistory : [{
             type : Schema.Types.ObjectId,
@@ -64,7 +64,7 @@ UserSchema.methods.generateAccessToken = function() {
         _id : this._id,
         email : this.email,
         username : this.username,
-        fullname : this.fullname,
+        fullName : this.fullName,
     },process.env.ACCESS_TOKEN_SECRET,{
         expiresIn : process.env.ACCESS_TOKEN_EXPIRY
     })
@@ -74,7 +74,7 @@ UserSchema.methods.generateRefreshToken = function() {
         _id : this._id,
         email : this.email,
         username : this.username,
-        fullname : this.fullname,
+        fullName : this.fullName,
     },
     process.env.REFRESH_TOKEN_SECRET,{
         expiresIn : process.env.REFRESH_TOKEN_EXPIRY

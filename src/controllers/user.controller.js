@@ -1,6 +1,6 @@
 import {asyncHandler} from "../utils/asyncHandler.js";
-import ApiError from "../utils/ApiError.js";
-import {User} from "../models/User.js";
+import {ApiError} from "../utils/ApiError.js";
+import {User} from "../models/users.model.js";
 import {uploadonCloudinary} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
@@ -40,17 +40,23 @@ const registerUser = asyncHandler(async(req,res) => {
             throw new ApiError(409, "User with email or username already exists")
         }
         // now we know that req.body can help us to get the data ok but here in the routes we have given middleware into the routes which gives us req.files
-        const avatarLocalPath= req.files?.avatar[0]?.path;
-        const coverLocalPath = req.files?.cover[0]?.path;
+        const avatarLocalPath = req.files?.avatar?.[0]?.path;
+        //const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+        let coverImageLocalPath;
+        if(req.files && Array.isArray(req.files.coverImage)&&req.files.coverImage.length>0)
+            {
+                coverImageLocalPath = req.files.coverImage[0].path;
+            }
+
         //  here we will take avatar and in the field we can have a lot of props like png jpg , size but we have taken its very first property coz we can get the object of it and we can set the path  
 
         if(!avatarLocalPath) throw new ApiError(400,"Avatar file is required")
             // upload them to cloudinary 
 
        const avatar =  await uploadonCloudinary(avatarLocalPath)
-       const coverImage = await uploadonCloudinary(coverLocalPath)
+       const coverImage = coverImageLocalPath ? await uploadonCloudinary(coverImageLocalPath) : { url: "" };       
 
-       if(!avatar || !cover) throw new ApiError(500,"Failed to upload image")
+       if(!avatar || !coverImage) throw new ApiError(500,"Failed to upload image")
 
         const user = await User.create(
             {
