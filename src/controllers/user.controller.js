@@ -5,7 +5,21 @@ import {uploadonCloudinary} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 
+const generateAccessAndRefreshToken = async(userId)=>{
+    try {
+      const user =  await User.findById (userId);
+      const acessToken = user.generateAccessToken(); 
+      const refreshToken = user.generateRefreshToken();
 
+      //give the refresh token to the user and save it in the database
+      user.refreshToken = refreshToken;
+      await user.save({validateBeforeSave : false});
+      // we use validateBeforeSave : false coz we dont want to validate the password and other fields again and again
+      return {acessToken,refreshToken};
+    } catch (error) {
+        throw new ApiError(500,"Something went wrong while generating Refresha and Access token")
+    }
+}
 const registerUser = asyncHandler(async(req,res) => {
      // things to do while writing backend for user registration :
      // get user details from the frontend
@@ -80,5 +94,63 @@ const registerUser = asyncHandler(async(req,res) => {
         )
     })
 
+const loginUser = asyncHandler(async(req,res) => {
+    //
+    const {email,password,username} = req.body;
+    if (!username || !email) {
+        throw new ApiError(400,"Please provide email or username");
+    }
+    const user = await User.findOne({
+        $or : [{email},{username}]
+    })
 
-export {registerUser}
+    if (!user) {
+        throw new ApiError(404,"User does not exist .")
+    }
+    const isPasswordValid = await user.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+        throw new ApiError(401,"Invalid credentials")
+    }
+    const {acessToken,refreshToken} = await generateAccessAndRefreshToken(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+    // above line is used to remove the password and refresh token from the response and we have used it becauase we dont want to send the password and refresh token to the frontend
+
+    const options = {
+        httpOnly : true,
+        secure : true
+    }
+    // by doing this what happen is you cookie is bydefault can be modified . but by making httpOnly and Secure : true we can make it more secure and can not be modified by frontend
+    return res
+    .status(200)
+    .cookie("accessToken",acessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResponse(200,{
+            user : loggedInUser,acessToken,refreshToken
+        },
+        "User logged in successfully")
+    )
+})
+
+const logoutUser = asyncHandler(async(req,res) => {
+    User.findByIdAndUpdate(req.user._id,{
+        $set:{
+            refreshToken:undefined
+        }
+    },
+    {
+        new : true
+    })
+    const options = {
+        httpOnly:true,
+        secure:true
+    }
+    return res
+    .status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(new ApiResponse(200,{},"User logged Out"))
+})
+
+export {registerUser,loginUser,logoutUser}
