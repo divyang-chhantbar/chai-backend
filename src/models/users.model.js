@@ -30,17 +30,17 @@ const UserSchema = new Schema(
         },
         avatar : {
             type : String, // cloudinary url
-            // required : true,
+            required : false,
         },
         coverImage : {
             type : String,
-            // required : true,
+             required : false,
         },
         watchHistory : [{
             type : Schema.Types.ObjectId,
             ref : "Video"
         }],
-        username : {
+        password : {
             type : String,
             required : [true , "Password is required" ]
         },
@@ -60,7 +60,7 @@ UserSchema.methods.isPasswordCorrect = async function(password) {
    return await  bcrypt.compare(password,this.password);
 }
 UserSchema.methods.generateAccessToken = function() {
-    jwt.sign({
+    return jwt.sign({
         _id : this._id,
         email : this.email,
         username : this.username,
@@ -68,6 +68,7 @@ UserSchema.methods.generateAccessToken = function() {
     },process.env.ACCESS_TOKEN_SECRET,{
         expiresIn : process.env.ACCESS_TOKEN_EXPIRY
     })
+    // i have missed writing a return statement which was giving me the undefined value of token .
 } 
 UserSchema.methods.generateRefreshToken = function() {
   return  jwt.sign({
