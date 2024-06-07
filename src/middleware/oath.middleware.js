@@ -23,6 +23,7 @@ export const verifyJWT = asyncHandler(async(req, _, next) => {
       }
   
       req.user = user;
+      // here we are passing the user to the next middleware and we can access the user in the next middleware which can help us to get the user id and other information
       next()
   } catch (error) {
     console.error('Error verifying token:', error);
