@@ -288,6 +288,15 @@ const updateAvatar = asyncHandler(async (req, res) => {
 
   if(!avatar.url) throw new ApiError(500,'Failed to upload image');
 
+  const oldAvatar = req.user?.avatar.url;
+  if (oldAvatar) {
+    try {
+      await cloudnary.uploader.destroy(oldAvatar);
+    } catch (error) {
+      console.error(`Error removing old avatar: ${error}`);
+    }
+  } 
+
   const user = await User.findByIdAndUpdate(req.user?._id,{
     $set : {
       avatar : avatar.url
