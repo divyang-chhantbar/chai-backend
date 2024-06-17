@@ -237,18 +237,25 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   // if its not correct throw an error and change the password
   // return the response
   const { oldPassword, newPassword, confirmPassword } = req.body;
+  console.log("oldPassword", oldPassword);
+  console.log("newPassword", newPassword);
+  console.log("confirmPassword", confirmPassword);
   // we have to get the old password and new password from the req.body
   const user = await User.findById(req.user?._id);
-  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); 
 
   if (!isPasswordCorrect) {
     throw new ApiError(401, "Invalid Password");
   }
 
-  user.password = newPassword;
   if (newPassword !== confirmPassword) {
     throw new ApiError(400, "Passwords do not match");
   }
+
+  // const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+   user.password = newPassword;
+  
+
   await user.save({ validateBeforeSave: false }); // we have to save the user and we have to validate the password before saving it
 
   return res

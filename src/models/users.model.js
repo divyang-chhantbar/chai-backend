@@ -30,11 +30,11 @@ const UserSchema = new Schema(
         },
         avatar : {
             type : String, // cloudinary url
-            required : false,
+            // required : false,
         },
         coverImage : {
             type : String,
-             required : false,
+            //  required : false,
         },
         watchHistory : [{
             type : Schema.Types.ObjectId,
@@ -57,8 +57,9 @@ UserSchema.pre("save", async function (next) {
 }) // inside it we can add the events like save, update, delete, etc
 
 UserSchema.methods.isPasswordCorrect = async function(password) {
-   return await  bcrypt.compare(password,this.password);
-}
+    const hashedPassword = this.password;
+  return await bcrypt.compare(password, hashedPassword);
+  };
 UserSchema.methods.generateAccessToken = function() {
     return jwt.sign({
         _id : this._id,
